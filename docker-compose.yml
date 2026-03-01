@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  hardhat:
+    image: node:20
+    working_dir: /app
+    command: sh -c "npm install && npx hardhat node --hostname 0.0.0.0"
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./:/app
+
+  ipfs:
+    image: ipfs/kubo:v0.31.0
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: graph
+      POSTGRES_PASSWORD: graph
+      POSTGRES_DB: graph
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graph"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  graph-node:
+    image: graphprotocol/graph-node:v0.40.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ipfs:
+        condition: service_started
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+      - "8030:8030"
+      - "8040:8040"
+    environment:
+      postgres_host: postgres
+      postgres_user: graph
+      postgres_pass: graph
+      postgres_db: graph
+      ipfs: ipfs:5001
+      ethereum: local:http://hardhat:8545
+      GRAPH_LOG: info

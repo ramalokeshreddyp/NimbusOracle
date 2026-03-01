@@ -1,0 +1,15 @@
+node_modules/
+coverage/
+cache/
+artifacts/
+typechain-types/
+
+.env
+frontend/.env
+
+frontend/node_modules/
+frontend/dist/
+
+subgraph/node_modules/
+subgraph/generated/
+subgraph/build/

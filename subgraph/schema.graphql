@@ -1,0 +1,15 @@
+type WeatherRequest @entity {
+  id: Bytes!
+  city: String!
+  requester: Bytes!
+  requestedAt: BigInt!
+}
+
+type WeatherReport @entity {
+  id: Bytes!
+  city: String!
+  temperature: Int!
+  description: String!
+  timestamp: BigInt!
+  requester: Bytes!
+}
