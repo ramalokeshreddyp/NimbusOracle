@@ -25,7 +25,7 @@ flowchart LR
     S -->|Any API Job| C[Chainlink Oracle]
     C -->|HTTP Request| W[Weather Provider]
     W -->|Payload| C
-    C -->|fulfill() callback| S
+  C -->|fulfill callback| S
     S -->|events| G[Subgraph Indexer]
     G -->|GraphQL| R
 ```
