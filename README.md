@@ -131,6 +131,7 @@ cp frontend/.env.example frontend/.env
 Populate `.env` with:
 - `PRIVATE_KEY`
 - `SEPOLIA_RPC_URL`
+- `ALCHEMY_API_KEY` or `INFURA_API_KEY` (optional if used to compose RPC URL)
 - `LINK_TOKEN_ADDRESS`
 - `CHAINLINK_ORACLE_ADDRESS`
 - `CHAINLINK_JOB_ID`
@@ -160,6 +161,11 @@ cd ..
 npm run compile
 npm test
 ```
+
+Testing strategy summary:
+- Unit tests validate request initiation, event emission, LINK balance checks, and access-control restrictions.
+- Fulfillment tests validate parser assumptions, report persistence, requester correlation, and emitted weather report events.
+- Negative tests validate invalid city, invalid oracle configuration, insufficient LINK, and non-oracle callback rejection.
 
 ### Subgraph
 
@@ -203,6 +209,12 @@ npm run auth
 npm run deploy
 ```
 
+Chainlink configuration notes:
+- `CHAINLINK_ORACLE_ADDRESS`: operator/oracle contract used on your target network.
+- `CHAINLINK_JOB_ID`: job spec ID configured to return normalized weather payload as string.
+- `CHAINLINK_FEE_WEI`: LINK payment amount required for the selected job.
+- Ensure the deployed oracle contract is funded with LINK before calling `requestWeather`.
+
 ## 📌 Usage Instructions
 
 1. Open frontend (`npm run dev` in `frontend/`).
@@ -211,6 +223,41 @@ npm run deploy
 4. Track tx status in UI.
 5. Wait for Chainlink fulfillment and subgraph indexing.
 6. See weather report appear in historical list.
+
+## 🐳 Docker Compose Local Environment (Step-by-Step)
+
+1. Start local services:
+
+```bash
+docker compose up --build
+```
+
+2. Verify service endpoints:
+- Hardhat RPC: `http://localhost:8545`
+- Graph Node GraphQL: `http://localhost:8000`
+- IPFS API: `http://localhost:5001`
+- Postgres: `localhost:5432`
+
+3. Stop services:
+
+```bash
+docker compose down
+```
+
+## 🔎 Example Subgraph Query (GraphQL Playground)
+
+```graphql
+query LatestWeatherReports {
+	weatherReports(orderBy: timestamp, orderDirection: desc, first: 10) {
+		id
+		city
+		temperature
+		description
+		timestamp
+		requester
+	}
+}
+```
 
 ## ✅ Validation Checklist
 
@@ -240,6 +287,14 @@ npm run deploy
 - Public repository link
 - Screenshots (frontend + Graph playground query)
 - Optional demo video (2–5 min)
+
+Suggested screenshot paths to include in repo:
+- `docs/screenshots/frontend-request-flow.png`
+- `docs/screenshots/frontend-history-list.png`
+- `docs/screenshots/subgraph-playground-query.png`
+
+Optional demo video link section:
+- `Demo Video: <Loom/YouTube URL>`
 
 ## 📚 Additional Docs
 
