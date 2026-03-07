@@ -175,6 +175,32 @@ describe("WeatherOracle", function () {
     expect(report.city).to.equal("Paris");
   });
 
+  it("parses payloads with whitespace and quoted temperature", async function () {
+    const { weatherOracle, oracleSigner, user } = await deployFixture();
+    const reqTx = await weatherOracle.connect(user).requestWeather("Lisbon");
+    const reqReceipt = await reqTx.wait();
+
+    const requestEvt = reqReceipt.logs
+      .map((log) => {
+        try {
+          return weatherOracle.interface.parseLog(log);
+        } catch {
+          return null;
+        }
+      })
+      .find((evt) => evt && evt.name === "WeatherRequested");
+
+    const requestId = requestEvt.args.requestId;
+    const payload = '{ "city" : "Lisbon", "temperature" : "19", "description" : "partly cloudy" }';
+
+    await weatherOracle.connect(oracleSigner).fulfill(requestId, payload);
+
+    const report = await weatherOracle.weatherReports(requestId);
+    expect(report.city).to.equal("Lisbon");
+    expect(report.temperature).to.equal(19);
+    expect(report.description).to.equal("partly cloudy");
+  });
+
   it("restricts admin setters to owner", async function () {
     const { weatherOracle, user } = await deployFixture();
 

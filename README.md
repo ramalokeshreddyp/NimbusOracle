@@ -160,7 +160,10 @@ cd ..
 ```bash
 npm run compile
 npm test
+npm run verify:e2e
 ```
+
+`npm run verify:e2e` runs contract tests, subgraph codegen/build, and frontend production build in sequence.
 
 Testing strategy summary:
 - Unit tests validate request initiation, event emission, LINK balance checks, and access-control restrictions.

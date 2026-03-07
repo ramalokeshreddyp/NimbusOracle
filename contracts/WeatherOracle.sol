@@ -123,14 +123,26 @@ contract WeatherOracle is ChainlinkClient, Ownable {
 
     function _extractStringValue(string memory json, string memory key) internal pure returns (string memory) {
         bytes memory data = bytes(json);
-        bytes memory keyPattern = bytes(string.concat('"', key, '":"'));
+        bytes memory keyPattern = bytes(string.concat('"', key, '"'));
 
         uint256 index = _findIndex(data, keyPattern);
         if (index == type(uint256).max) {
             return "";
         }
 
-        uint256 valueStart = index + keyPattern.length;
+        uint256 cursor = index + keyPattern.length;
+        cursor = _skipWhitespace(data, cursor);
+        if (cursor >= data.length || data[cursor] != ':') {
+            return "";
+        }
+
+        cursor++;
+        cursor = _skipWhitespace(data, cursor);
+        if (cursor >= data.length || data[cursor] != '"') {
+            return "";
+        }
+
+        uint256 valueStart = cursor + 1;
         uint256 valueEnd = valueStart;
 
         while (valueEnd < data.length && data[valueEnd] != '"') {
@@ -146,7 +158,7 @@ contract WeatherOracle is ChainlinkClient, Ownable {
 
     function _extractIntValue(string memory json, string memory key) internal pure returns (int256) {
         bytes memory data = bytes(json);
-        bytes memory keyPattern = bytes(string.concat('"', key, '":'));
+        bytes memory keyPattern = bytes(string.concat('"', key, '"'));
 
         uint256 index = _findIndex(data, keyPattern);
         if (index == type(uint256).max) {
@@ -154,6 +166,20 @@ contract WeatherOracle is ChainlinkClient, Ownable {
         }
 
         uint256 cursor = index + keyPattern.length;
+        cursor = _skipWhitespace(data, cursor);
+        if (cursor >= data.length || data[cursor] != ':') {
+            return 0;
+        }
+
+        cursor++;
+        cursor = _skipWhitespace(data, cursor);
+
+        bool isQuoted;
+        if (cursor < data.length && data[cursor] == '"') {
+            isQuoted = true;
+            cursor++;
+        }
+
         bool isNegative;
 
         if (cursor < data.length && data[cursor] == '-') {
@@ -172,10 +198,27 @@ contract WeatherOracle is ChainlinkClient, Ownable {
             if (ch == '.') {
                 break;
             }
+
+            if (isQuoted && ch == '"') {
+                break;
+            }
+
             break;
         }
 
         return isNegative ? -value : value;
+    }
+
+    function _skipWhitespace(bytes memory data, uint256 cursor) internal pure returns (uint256) {
+        while (cursor < data.length) {
+            bytes1 ch = data[cursor];
+            if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
+                cursor++;
+                continue;
+            }
+            break;
+        }
+        return cursor;
     }
 
     function _findIndex(bytes memory haystack, bytes memory needle) internal pure returns (uint256) {

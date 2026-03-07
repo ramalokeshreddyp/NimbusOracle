@@ -5,6 +5,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
+    "verify:e2e": "npm test && npm --prefix subgraph run codegen && npm --prefix subgraph run build && npm --prefix frontend run build",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
     "request:sepolia": "hardhat run scripts/request-weather.js --network sepolia",
     "node": "hardhat node"
